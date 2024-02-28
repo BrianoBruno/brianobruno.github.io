@@ -1,0 +1,25 @@
+<html>
+
+<head>
+	<script>
+		var name;
+		now = new Date();
+		hour = now.getHours();
+
+		name = window.prompt("Please Enter Your name", "Briano");
+		if (hour < 12) {
+			document.write("<h1> Good Morning ")
+		} else if (hour < 18) {
+			document.write("<h1> Good Afternoon ")
+		} else {
+			document.write("<h1> Good Evening ")
+		}
+		document.writeln(name + ",  Welcome to Javascript Programming")
+	</script>
+</head>
+
+<body>
+	<h1>I am html</h1>
+</body>
+
+</html>
