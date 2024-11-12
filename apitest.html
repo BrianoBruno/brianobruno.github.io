@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Tester</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .response-container {
+      margin-top: 20px;
+    }
+    pre {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <h2 class="text-center">REST API Interface</h2>
+    <div class="form-group">
+      <label for="url">API URL</label>
+      <input type="text" id="url" class="form-control" placeholder="Enter API endpoint" required>
+    </div>
+
+    <div class="form-group">
+      <label for="method">HTTP Method</label>
+      <select id="method" class="form-control">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+        <option value="PUT">PUT</option>
+        <option value="DELETE">DELETE</option>
+        <option value="PATCH">PATCH</option>
+        <option value="HEAD">HEAD</option>
+        <option value="OPTIONS">OPTIONS</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="headers">Headers (JSON format)</label>
+      <textarea id="headers" class="form-control" rows="3" placeholder='e.g., {"Content-Type": "application/json"}'></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="body">Body (JSON format, for POST/PUT/PATCH)</label>
+      <textarea id="body" class="form-control" rows="5" placeholder="Enter request body"></textarea>
+    </div>
+
+    <button id="sendRequest" class="btn btn-primary btn-block">Send Request</button>
+
+    <div class="response-container mt-4">
+      <h4>Response:</h4>
+      <div id="responseStatus" class="alert" role="alert" style="display: none;"></div>
+      <h5>Response Headers:</h5>
+      <pre id="responseHeaders"></pre>
+      <h5>Response Body:</h5>
+      <pre id="responseBody"></pre>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('sendRequest').addEventListener('click', async () => {
+      const url = document.getElementById('url').value;
+      const method = document.getElementById('method').value;
+      let headers = document.getElementById('headers').value;
+      let body = document.getElementById('body').value;
+
+      // Parse headers and body
+      try {
+        headers = headers ? JSON.parse(headers) : {};
+      } catch (error) {
+        alert("Headers must be in JSON format");
+        return;
+      }
+
+      try {
+        body = body ? JSON.parse(body) : null;
+      } catch (error) {
+        alert("Body must be in JSON format");
+        return;
+      }
+
+      // Set up options for the fetch request
+      const options = {
+        method,
+        headers,
+        body: method === 'GET' || method === 'HEAD' || method === 'OPTIONS' ? null : JSON.stringify(body)
+      };
+
+      try {
+        const response = await fetch(url, options);
+
+        // Clear previous response
+        document.getElementById('responseStatus').style.display = 'block';
+        document.getElementById('responseStatus').className = response.ok ? 'alert alert-success' : 'alert alert-danger';
+        document.getElementById('responseStatus').textContent = response.ok ? 'Success' : `Error: ${response.status} ${response.statusText}`;
+        
+        // Display headers
+        const headersObj = {};
+        response.headers.forEach((value, key) => {
+          headersObj[key] = value;
+        });
+        document.getElementById('responseHeaders').textContent = JSON.stringify(headersObj, null, 2);
+
+        // Display body
+        const data = await response.text(); // Use .text() to capture all content types
+        document.getElementById('responseBody').textContent = data || 'No content';
+
+      } catch (error) {
+        // Handle network errors
+        document.getElementById('responseStatus').style.display = 'block';
+        document.getElementById('responseStatus').className = 'alert alert-danger';
+        document.getElementById('responseStatus').textContent = error.message.includes("CORS") ? "CORS error: The server's CORS policy blocked the request." : `Network Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
