@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Break Scraper</title>
+    <title>JSON Table Display</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="mb-4">Break Scraper</h2>
-       
+        <h2 class="mb-4">Break Details</h2>
+        <div id="break-details" class="mb-4">
+            <p><strong>Title:</strong> <span id="break-title">N/A</span></p>
+            <p><strong>Description:</strong> <span id="break-description">N/A</span></p>
+            <p><strong>Total Spots:</strong> <span id="total-spots">N/A</span></p>
+            <p><strong>Filled Spots:</strong> <span id="filled-spots">N/A</span></p>
+        </div>
         
         <h2 class="mb-4">Listings</h2>
         <textarea id="json-input" class="form-control mb-3" rows="10" placeholder='Paste JSON here'></textarea>
         <button class="btn btn-primary" onclick="processJson()">Generate Table</button>
-        <div id="break-details" class="mb-4"></div>
-        <h4 class="mt-4">Total Sales: $<span id="total-sales">0</span></h4>
-        <h4>Average Sale Price per Filled Spot: $<span id="average-price">0</span></h4>
+        
         <table class="table table-bordered mt-3">
             <thead>
                 <tr>
                     <th>Listing Title</th>
+                    <th>Description</th>
                     <th>Price Amount</th>
                 </tr>
             </thead>
@@ -29,6 +33,8 @@
             </tbody>
         </table>
         
+        <h4 class="mt-4">Total Sales: $<span id="total-sales">0</span></h4>
+        <h4>Average Sale Price per Filled Spot: $<span id="average-price">0</span></h4>
     </div>
     
     <script>
@@ -39,28 +45,29 @@
                 const breakData = jsonData?.data?.getBreak;
                 const spots = breakData?.spots || [];
                 const tableBody = document.getElementById("table-body");
-                const breakDetails = document.getElementById("break-details");
                 const totalSalesEl = document.getElementById("total-sales");
                 const averagePriceEl = document.getElementById("average-price");
                 
-                tableBody.innerHTML = ""; // Clear previous data
-                breakDetails.innerHTML = `
-                    <p><strong>Title:</strong> ${breakData?.title || "N/A"}</p>
-                    <p><strong>Description:</strong> ${breakData?.description || "N/A"}</p>
-                    <p><strong>Total Spots:</strong> ${breakData?.totalBreakSpots || "N/A"}</p>
-                    <p><strong>Filled Spots:</strong> ${breakData?.filledBreakSpots || "N/A"}</p>
-                `;
+                // Display break details
+                const breakTitle = breakData?.title || "";
+                document.getElementById("break-title").textContent = breakTitle;
+                document.getElementById("break-description").textContent = breakData?.description || "N/A";
+                document.getElementById("total-spots").textContent = breakData?.totalBreakSpots || "N/A";
+                document.getElementById("filled-spots").textContent = breakData?.filledBreakSpots || "N/A";
                 
+                tableBody.innerHTML = ""; // Clear previous data
                 let totalSales = 0;
                 
                 spots.forEach(spot => {
                     const listing = spot.listing;
                     if (listing && listing.title && listing.price && listing.price.amount !== undefined) {
+                        let listingTitle = listing.title.replace(breakTitle + " - ", ""); // Remove break title prefix
                         const formattedPrice = (listing.price.amount / 100).toFixed(0); // Drop last two zeros
                         totalSales += parseInt(formattedPrice);
                         
                         const row = `<tr>
-                                        <td>${listing.title}</td>
+                                        <td>${listingTitle}</td>
+                                        <td>${listing.description || "N/A"}</td>
                                         <td>$${formattedPrice}</td>
                                     </tr>`;
                         tableBody.innerHTML += row;
