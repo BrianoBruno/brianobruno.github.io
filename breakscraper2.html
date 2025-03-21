@@ -32,27 +32,40 @@
     </div>
 
     <script>
-    chrome.runtime.sendMessage({ action: "GET_BREAK_DATA" }, (response) => {
-        if (!response || !response.data) {
-            console.error("No break data received.");
-            return;
-        }
+        // Request the stored break data from the extension
+        chrome.runtime.sendMessage({ action: "GET_BREAK_DATA" }, (response) => {
+            if (!response || !response.breakData) {
+                console.error("No break data received.");
+                return;
+            }
+
+            // Process the received JSON data
+            processJson(response.breakData);
+        });
 
         function processJson(jsonData) {
             const breakData = jsonData?.data?.getBreak;
-            const spots = breakData?.spots || [];
+            if (!breakData) {
+                console.error("Invalid break data format.");
+                return;
+            }
+
+            const spots = breakData.spots || [];
             const tableBody = document.getElementById("table-body");
             const totalSalesEl = document.getElementById("total-sales");
             const averagePriceEl = document.getElementById("average-price");
 
-            document.getElementById("break-title").textContent = breakData?.title || "N/A";
-            document.getElementById("break-description").textContent = breakData?.description || "N/A";
-            document.getElementById("total-spots").textContent = breakData?.totalBreakSpots || "N/A";
-            document.getElementById("filled-spots").textContent = breakData?.filledBreakSpots || "N/A";
+            // Update break details
+            document.getElementById("break-title").textContent = breakData.title || "N/A";
+            document.getElementById("break-description").textContent = breakData.description || "N/A";
+            document.getElementById("total-spots").textContent = breakData.totalBreakSpots || "N/A";
+            document.getElementById("filled-spots").textContent = breakData.filledBreakSpots || "N/A";
 
+            // Clear existing table rows
             tableBody.innerHTML = "";
             let totalSales = 0;
 
+            // Populate table with listings
             spots.forEach(spot => {
                 const listing = spot.listing;
                 if (listing && listing.title && listing.price && listing.price.amount !== undefined) {
@@ -69,11 +82,11 @@
                 }
             });
 
+            // Update total sales and average price
             totalSalesEl.textContent = totalSales.toLocaleString();
-            const filledSpots = breakData?.filledBreakSpots || 1;
+            const filledSpots = breakData.filledBreakSpots || 1;
             averagePriceEl.textContent = filledSpots > 0 ? (totalSales / filledSpots).toFixed(2) : "0";
         }
-    }
     </script>
 </body>
 </html>
