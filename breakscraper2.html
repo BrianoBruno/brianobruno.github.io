@@ -37,11 +37,10 @@
     
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            chrome.storage.local.get("selectedBreak", (result) => {
-                if (result.selectedBreak) {
-                    processJson(result.selectedBreak);
-                }
-            });
+            const jsonData = localStorage.getItem("selectedBreak");
+            if (jsonData) {
+                processJson(JSON.parse(jsonData));
+            }
         });
     
         function processJson(jsonData) {
@@ -81,5 +80,6 @@
             averagePriceEl.textContent = averagePrice;
         }
     </script>
+    
 </body>
 </html>
