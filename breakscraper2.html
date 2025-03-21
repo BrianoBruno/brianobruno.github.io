@@ -19,8 +19,6 @@
         </div>
         
         <h2 class="mb-4">Listings</h2>
-        <textarea id="json-input" class="form-control mb-3" rows="10" placeholder='Paste JSON here'></textarea>
-        <button class="btn btn-primary" onclick="processJson()">Generate Table</button>
         
         <table class="table table-bordered mt-3">
             <thead>
@@ -38,22 +36,13 @@
     </div>
     
     <script>
-        function getJsonFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            const jsonData = params.get("data");
-    
-            if (!jsonData) {
-                alert("No data received.");
-                return;
-            }
-    
-            try {
-                const parsedData = JSON.parse(decodeURIComponent(jsonData));
-                processJson(parsedData);
-            } catch (error) {
-                alert("Invalid JSON data.");
-            }
-        }
+        document.addEventListener("DOMContentLoaded", function () {
+            chrome.storage.local.get("selectedBreak", (result) => {
+                if (result.selectedBreak) {
+                    processJson(result.selectedBreak);
+                }
+            });
+        });
     
         function processJson(jsonData) {
             const breakData = jsonData?.data?.getBreak;
@@ -62,19 +51,18 @@
             const totalSalesEl = document.getElementById("total-sales");
             const averagePriceEl = document.getElementById("average-price");
     
-            // Display break details
             document.getElementById("break-title").textContent = breakData?.title || "N/A";
             document.getElementById("break-description").textContent = breakData?.description || "N/A";
             document.getElementById("total-spots").textContent = breakData?.totalBreakSpots || "N/A";
             document.getElementById("filled-spots").textContent = breakData?.filledBreakSpots || "N/A";
     
-            tableBody.innerHTML = ""; // Clear previous data
+            tableBody.innerHTML = "";
             let totalSales = 0;
     
             spots.forEach(spot => {
                 const listing = spot.listing;
                 if (listing && listing.title && listing.price && listing.price.amount !== undefined) {
-                    let listingTitle = listing.title.replace(breakData.title + " - ", "");
+                    let listingTitle = listing.title.replace(breakData?.title + " - ", "");
                     const formattedPrice = (listing.price.amount / 100).toFixed(0);
                     totalSales += parseInt(formattedPrice);
     
@@ -92,9 +80,6 @@
             const averagePrice = filledSpots > 0 ? (totalSales / filledSpots).toFixed(2) : "0";
             averagePriceEl.textContent = averagePrice;
         }
-    
-        document.addEventListener("DOMContentLoaded", getJsonFromUrl);
     </script>
-    
 </body>
 </html>
