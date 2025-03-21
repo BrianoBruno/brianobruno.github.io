@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON Table Display</title>
+    <title>Break Details</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -17,9 +17,8 @@
             <h4 class="mt-4">Total Sales: $<span id="total-sales">0</span></h4>
             <h4>Average Sale Price per Filled Spot: $<span id="average-price">0</span></h4>
         </div>
-        
+
         <h2 class="mb-4">Listings</h2>
-        
         <table class="table table-bordered mt-3">
             <thead>
                 <tr>
@@ -32,39 +31,45 @@
                 <!-- Data will be inserted here -->
             </tbody>
         </table>
-        
     </div>
-    
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const jsonData = localStorage.getItem("selectedBreak");
+
+            console.log("📥 Retrieved JSON from localStorage:", jsonData);
+
             if (jsonData) {
                 processJson(JSON.parse(jsonData));
+            } else {
+                console.warn("⚠ No data found in localStorage.");
             }
         });
-    
+
         function processJson(jsonData) {
             const breakData = jsonData?.data?.getBreak;
-            const spots = breakData?.spots || [];
-            const tableBody = document.getElementById("table-body");
-            const totalSalesEl = document.getElementById("total-sales");
-            const averagePriceEl = document.getElementById("average-price");
-    
+            if (!breakData) {
+                console.error("❌ Invalid JSON structure:", jsonData);
+                return;
+            }
+
             document.getElementById("break-title").textContent = breakData?.title || "N/A";
             document.getElementById("break-description").textContent = breakData?.description || "N/A";
             document.getElementById("total-spots").textContent = breakData?.totalBreakSpots || "N/A";
             document.getElementById("filled-spots").textContent = breakData?.filledBreakSpots || "N/A";
-    
+
+            const tableBody = document.getElementById("table-body");
             tableBody.innerHTML = "";
+
             let totalSales = 0;
-    
+            const spots = breakData?.spots || [];
             spots.forEach(spot => {
                 const listing = spot.listing;
-                if (listing && listing.title && listing.price && listing.price.amount !== undefined) {
-                    let listingTitle = listing.title.replace(breakData?.title + " - ", "");
+                if (listing && listing.title && listing.price?.amount !== undefined) {
+                    let listingTitle = listing.title.replace(breakData.title + " - ", "");
                     const formattedPrice = (listing.price.amount / 100).toFixed(0);
                     totalSales += parseInt(formattedPrice);
-    
+
                     const row = `<tr>
                                     <td>${listingTitle}</td>
                                     <td>${listing.description || "N/A"}</td>
@@ -73,13 +78,12 @@
                     tableBody.innerHTML += row;
                 }
             });
-    
-            totalSalesEl.textContent = totalSales.toLocaleString();
+
+            document.getElementById("total-sales").textContent = totalSales.toLocaleString();
             const filledSpots = breakData?.filledBreakSpots || 1;
             const averagePrice = filledSpots > 0 ? (totalSales / filledSpots).toFixed(2) : "0";
-            averagePriceEl.textContent = averagePrice;
+            document.getElementById("average-price").textContent = averagePrice;
         }
     </script>
-    
 </body>
 </html>
