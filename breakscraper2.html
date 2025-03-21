@@ -32,17 +32,11 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const params = new URLSearchParams(window.location.search);
-            const jsonData = params.get("data");
-
-            if (jsonData) {
-                console.log("📥 Decoded JSON from URL:", jsonData);
-                processJson(JSON.parse(decodeURIComponent(jsonData)));
-            } else {
-                console.warn("⚠ No data found in URL.");
-            }
-        });
+    chrome.runtime.sendMessage({ action: "GET_BREAK_DATA" }, (response) => {
+        if (!response || !response.data) {
+            console.error("No break data received.");
+            return;
+        }
 
         function processJson(jsonData) {
             const breakData = jsonData?.data?.getBreak;
@@ -79,6 +73,7 @@
             const filledSpots = breakData?.filledBreakSpots || 1;
             averagePriceEl.textContent = filledSpots > 0 ? (totalSales / filledSpots).toFixed(2) : "0";
         }
+    }
     </script>
 </body>
 </html>
