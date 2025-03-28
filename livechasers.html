@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chasers</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h2 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: inline-block;
+            padding: 10px 20px;
+            color: #ff8c00;
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.8), 0 0 20px rgba(255, 45, 85, 0.8);
+        }
+        .stats-container {
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .stats {
+            background: #1e1e1e;
+            border: 2px solid #ff8c00;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(255, 140, 0, 0.2);
+            display: inline-block;
+            width: 100%;
+            max-width: 600px;
+        }
+        .stats p {
+            font-size: 1.2rem;
+            margin: 5px 0;
+        }
+        .card {
+            background: #1e1e1e;
+            border: 2px solid #ff8c00;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(255, 140, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            color: white;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(255, 165, 0, 0.5);
+        }
+        .card img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+            background: black;
+            padding: 10px;
+            border-radius: 12px 12px 0 0;
+        }
+        .card-body {
+            padding: 20px;
+            text-align: left;
+        }
+        .card-body p {
+            font-size: 1rem;
+            margin: 5px 0;
+        }
+        .container {
+            max-width: 1100px;
+        }
+    </style>
+</head>
+<body class="container mt-5">
+
+    <h2>🔥 Live Chasers 🔥</h2>
+
+    <!-- Stats Section Positioned Below -->
+    <div class="stats-container">
+        <div class="stats">
+            <p><strong>Floor Price:</strong> $<span id="floor-price">0</span></p>
+            <p><strong>Ceiling Price:</strong> $<span id="ceiling-price">0</span></p>
+            <p><strong>Total Cards Live:</strong> <span id="total-cards">0</span></p>
+            <p><strong>Average Price:</strong> $<span id="average-price">0</span></p>
+        </div>
+    </div>
+
+    <div id="card-container" class="row g-4"></div>
+
+    <script>
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycbzsxIfu8I6ezX8b5j0xbva81TxrVqgZIXLg2BiJz7PqHYhjKHg5Ep1uGNBUKWSvpQNS-Q/exec"; 
+
+        async function fetchData() {
+            try {
+                const response = await fetch(SHEET_URL);
+                const data = await response.json();
+                console.log("Full JSON response:", data);
+
+                if (data.length === 0) return;
+
+                let headers = data[0]; 
+                let cardContainer = document.getElementById("card-container");
+                let floorPriceElem = document.getElementById("floor-price");
+                let ceilingPriceElem = document.getElementById("ceiling-price");
+                let totalCardsElem = document.getElementById("total-cards");
+                let avgPriceElem = document.getElementById("average-price");
+
+                cardContainer.innerHTML = "";
+
+                let prices = [];
+                let totalCards = 0;
+
+                data.slice(1).forEach(row => {
+                    let rowData = Object.fromEntries(row.map((cell, index) => [headers[index], cell]));
+
+                    if (rowData["Sold"] == 1) return;
+
+                    let imgSrc = rowData["Image"] ? rowData["Image"] : "placeholder.jpg"; 
+                    let marketPrice = parseFloat(rowData["Market Price"]) || 0; 
+                    prices.push(marketPrice);
+                    totalCards++;
+
+                    let card = `
+                        <div class="col-md-4">
+                            <div class="card">
+                                <img src="${imgSrc}" class="card-img-top" alt="Product Image">
+                                <div class="card-body">
+                                    ${Object.entries(rowData).map(([key, value]) => 
+                                        key !== "Image" && key !== "Sold" ? `<p><strong>${key}:</strong> ${value}</p>` : ""
+                                    ).join("")}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    cardContainer.innerHTML += card;
+                });
+
+                if (prices.length > 0) {
+                    let floorPrice = Math.min(...prices).toFixed(2);
+                    let ceilingPrice = Math.max(...prices).toFixed(2);
+                    let avgPrice = (prices.reduce((a, b) => a + b, 0) / prices.length).toFixed(2);
+
+                    floorPriceElem.textContent = floorPrice;
+                    ceilingPriceElem.textContent = ceilingPrice;
+                    avgPriceElem.textContent = avgPrice;
+                } else {
+                    floorPriceElem.textContent = "N/A";
+                    ceilingPriceElem.textContent = "N/A";
+                    avgPriceElem.textContent = "N/A";
+                }
+
+                totalCardsElem.textContent = totalCards;
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        window.onload = fetchData;
+    </script>
+
+</body>
+</html>
