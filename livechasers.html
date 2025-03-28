@@ -116,7 +116,8 @@
                 data.slice(1).forEach(row => {
                     let rowData = Object.fromEntries(row.map((cell, index) => [headers[index], cell]));
 
-                    if (rowData["Sold"] == 1) return;
+                    // Skip rows where 'Sold' or 'Hidden' are 1
+                    if (rowData["Sold"] == 1 || rowData["Hidden"] == 1) return;
 
                     let imgSrc = rowData["Image"] ? rowData["Image"] : "placeholder.jpg"; 
                     let marketPrice = parseFloat(rowData["Market Price"]) || 0; 
@@ -129,7 +130,7 @@
                                 <img src="${imgSrc}" class="card-img-top" alt="Product Image">
                                 <div class="card-body">
                                     ${Object.entries(rowData).map(([key, value]) => 
-                                        key !== "Image" && key !== "Sold" ? `<p><strong>${key}:</strong> ${value}</p>` : ""
+                                        key !== "Image" && key !== "Sold" && key !== "Hidden" ? `<p><strong>${key}:</strong> ${value}</p>` : ""
                                     ).join("")}
                                 </div>
                             </div>
@@ -138,6 +139,7 @@
                     cardContainer.innerHTML += card;
                 });
 
+                // Calculate statistics
                 if (prices.length > 0) {
                     let floorPrice = Math.min(...prices).toFixed(2);
                     let ceilingPrice = Math.max(...prices).toFixed(2);
