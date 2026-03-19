@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Example</title>
+
+  <script>
+    function submitForm() {
+      var elements = document.getElementById("myForm").elements;
+      var elemsArr = Array.from(elements);
+      var submission = {};
+
+      elemsArr.forEach((element) => {
+        if (element.name) {
+          submission[element.name] = element.value;
+          console.log(element.name + ": " + element.value);
+        }
+      });
+
+      console.log("Final Object:", submission);
+    }
+  </script>
+</head>
+
+<body>
+  <form id="myForm">
+    First name:
+    <input type="text" name="fname" value="Donald"><br>
+
+    Last name:
+    <input type="text" name="lname" value="Duck"><br>
+  </form>
+
+  <button onclick="submitForm()">Submit</button>
+
+  <p>Click submit and check the console</p>
+</body>
+</html>
